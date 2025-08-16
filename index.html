@@ -167,17 +167,31 @@
     }
     .reset-btn:hover, .download-all-btn:hover { background: var(--neutral-hover); }
     footer { margin-top: 40px; padding: 20px; font-size: 14px; text-align: center; background: var(--card-bg); }
+    
+    .logo-img {
+  height: 40px; /* Adjust as needed */
+  width: auto;
+  display: block;
+}
+
   </style>
 </head>
 <body>
 
-<header>
-  <h1>PixelShrink Studio</h1>
-  <button class="dark-toggle-btn" id="darkToggle">🌙 Dark Mode</button>
+<!-- Header -->
+<header class="header">
+  <div class="logo">
+    <!-- Replace with your logo file -->
+    <img src="/pixelshrink-logo.png" alt="PixelShrink Logo" class="logo-img">
+  </div>
+  <div class="header-actions">
+    <button class="dark-toggle-btn" id="darkToggle">🌙 Dark Mode</button>
+  </div>
 </header>
 
+
 <div class="intro">
-  <h2>Compress & Convert Images Online</h2>
+  <h2>Compress or Convert Images Online</h2>
   <p>Reduce photo size by up to 90%. Convert JPG, PNG, WebP. Free, fast & no signup.</p>
 </div>
 
