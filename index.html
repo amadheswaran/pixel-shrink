@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Free online image compressor and converter. Compress JPG, PNG, WebP images online, reduce file size by up to 90%, convert between JPG, PNG, WebP, and download all images in a single ZIP. No registration required.">
+  <meta name="keywords" content="image compressor, compress jpg, compress png, compress webp, reduce image size, shrink image, photo optimizer, convert png to jpg, convert jpg to png, webp converter, online image tool, image zip download">
+  <meta name="robots" content="index, follow">
+  <title>PixelShrink Studio - Free Image Compressor & Converter</title>
+  
+  <!-- Favicon -->
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    :root {
+      --bg: #f8fbff;
+      --card-bg: #ffffff;
+      --text: #333;
+      --subtext: #555;
+      --accent: #1e88e5;
+      --accent-hover: #1565c0;
+      --neutral: #607d8b;
+      --neutral-hover: #455a64;
+    }
+    body.dark {
+      --bg: #181a1f;
+      --card-bg: #22252b;
+      --text: #f0f0f0;
+      --subtext: #aaa;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    header {
+      padding: 20px;
+      background: var(--card-bg);
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .dark-toggle-btn {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .dark-toggle-btn:hover { background: var(--accent-hover); }
+    .intro {
+      text-align: center;
+      margin: 40px auto 20px;
+    }
+    .intro h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--accent);
+    }
+    .intro p { color: var(--subtext); margin: 10px 0; }
+    .upload-area {
+      border: 2px dashed #90caf9;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 40px 20px;
+      background: #e3f2fd;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .upload-area.dragover { background: #bbdefb; }
+    .upload-area input { display: none; }
+    .upload-area svg {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 10px;
+      fill: var(--accent);
+    }
+    .upload-area strong { display: block; font-size: 18px; margin: 8px 0; }
+    .upload-area small { display: block; color: var(--subtext); margin-top: 8px; }
+    .upload-btn {
+      margin-top: 15px;
+      padding: 12px 25px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .results { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+    .image-card {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    }
+    .image-card h3 { margin-top: 0; }
+    .comparison-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 20px;
+    }
+    .image-preview { flex: 1; min-width: 220px; text-align: center; }
+    .image-preview img {
+      max-width: 200px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .download-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+    .download-btn:hover { background: var(--accent-hover); }
+    .progress-bar {
+      width: 80%;
+      max-width: 400px;
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      margin: 20px auto;
+      overflow: hidden;
+      display: none;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+      transition: width 0.2s ease;
+    }
+    .reset-btn, .download-all-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 24px;
+      background: var(--neutral);
+      color: #fff;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      text-align: center;
+    }
+    .reset-btn:hover, .download-all-btn:hover { background: var(--neutral-hover); }
+    footer { margin-top: 40px; padding: 20px; font-size: 14px; text-align: center; background: var(--card-bg); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>PixelShrink Studio</h1>
+  <button class="dark-toggle-btn" id="darkToggle">🌙 Dark Mode</button>
+</header>
+
+<div class="intro">
+  <h2>Compress & Convert Images Online</h2>
+  <p>Reduce photo size by up to 90%. Convert JPG, PNG, WebP. Free, fast & no signup.</p>
+</div>
+
+<div class="upload-area" id="upload-area">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 15v4H5v-4H3v4c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-4h-2zm-7-2 4 4h-3v4h-2v-4H8l4-4zm0-12-4 4h3v4h2V5h3l-4-4z"/></svg>
+  <strong>Drop Your Images Here</strong>
+  <p>or click to browse & select the images</p>
+  <input type="file" id="file-input" multiple accept="image/*">
+  <button class="upload-btn" onclick="fileInput.click()">Select Images</button>
+  <small>Supported formats: JPG, PNG, WebP | Max size: 50MB</small>
+</div>
+
+<div class="progress-bar" id="progressBar">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<div class="results" id="results"></div>
+
+<button class="download-all-btn" id="downloadAll" style="display:none;">⬇ Download All as ZIP</button>
+<button class="reset-btn" id="resetBtn">🔄 Reset</button>
+
+<section class="blog" id="blog">
+  <div class="blog-container">
+    <h2>📘 Image Optimization Blog</h2>
+    <p>Learn how to reduce image size, choose the right format, and speed up your website with our free image compression tips.</p>
+
+    <button id="toggleBlog" class="toggle-btn">▼ Show Blog Articles</button>
+
+    <div id="blogContent" class="collapsed">
+      <article class="blog-post">
+        <h3>How to Reduce Image Size Without Losing Quality</h3>
+        <p>Large images slow down websites and hurt SEO rankings. By using our free <strong>online image compressor</strong>, you can reduce image size by up to 90% without visible quality loss. This improves page load speed and Google Core Web Vitals.</p>
+        <ul>
+          <li>Use JPG for photos</li>
+          <li>Use PNG for graphics with transparency</li>
+          <li>Use WebP for best balance of quality and size</li>
+        </ul>
+        <a href="#upload-area" class="cta-btn">🚀 Compress Your Images Now</a>
+      </article>
+
+      <article class="blog-post">
+        <h3>PNG vs JPG vs WebP: Which Format Should You Use?</h3>
+        <p>Choosing the right format is key to both <em>image quality</em> and <em>SEO performance</em>. JPG is great for photos, PNG for transparency, and WebP for modern web performance. Our <strong>image converter</strong> lets you instantly switch between formats for free.</p>
+        <a href="#upload-area" class="cta-btn">Try Free Format Converter</a>
+      </article>
+
+      <article class="blog-post">
+        <h3>Boost Your Website Speed with Optimized Images</h3>
+        <p>Website speed is one of Google’s ranking factors. By compressing and converting images, you reduce bandwidth usage and improve user experience. Our tool helps web developers, eCommerce owners, and bloggers achieve faster site speeds effortlessly.</p>
+        <a href="#upload-area" class="cta-btn">Optimize Your Images →</a>
+      </article>
+
+      <article class="blog-post">
+        <h3>Top 5 Free Tools for Image Compression (2025 Edition)</h3>
+        <p>Looking for the <strong>best free image compression tools</strong>? Our own PixelShrink Studio ranks among the top thanks to per-image customization, batch download as ZIP, and unlimited free use.</p>
+        <ol>
+          <li>PixelShrink Studio (Best overall)</li>
+          <li>TinyPNG</li>
+          <li>CompressJPEG</li>
+          <li>Squoosh by Google</li>
+          <li>ILoveIMG</li>
+        </ol>
+        <a href="#upload-area" class="cta-btn">Start Compressing →</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+.blog {
+  background: var(--card-bg);
+  padding: 40px 20px;
+  margin-top: 40px;
+  border-radius: 12px;
+}
+.blog h2 { text-align: center; color: var(--accent); margin-bottom: 10px; }
+.blog p { text-align: center; color: var(--subtext); }
+
+.toggle-btn {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.toggle-btn:hover { background: var(--accent-hover); }
+
+#blogContent.collapsed {
+  display: none;
+}
+.blog-post {
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.blog-post h3 { color: var(--accent); }
+.blog-post p { color: var(--text); line-height: 1.6; }
+.blog-post ul, .blog-post ol { margin-left: 20px; }
+.cta-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+}
+.cta-btn:hover { background: var(--accent-hover); }
+</style>
+
+<script>
+const toggleBtn = document.getElementById("toggleBlog");
+const blogContent = document.getElementById("blogContent");
+
+toggleBtn.addEventListener("click", () => {
+  if (blogContent.classList.contains("collapsed")) {
+    blogContent.classList.remove("collapsed");
+    toggleBtn.textContent = "▲ Hide Blog Articles";
+  } else {
+    blogContent.classList.add("collapsed");
+    toggleBtn.textContent = "▼ Show Blog Articles";
+  }
+});
+</script>
+
+<section class="faq" id="faq">
+  <div class="faq-container">
+    <h2>❓ Frequently Asked Questions</h2>
+    <p>Find quick answers about our free image compression and conversion tool.</p>
+
+    <div class="faq-item">
+      <button class="faq-question">What image formats are supported? <span>+</span></button>
+      <div class="faq-answer">
+        <p>We support JPG, PNG, and WebP formats. You can compress, convert, and download your images instantly without losing quality.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">Is this image compressor really free? <span>+</span></button>
+      <div class="faq-answer">
+        <p>Yes, our tool is 100% free with no hidden costs or watermarks. You can compress unlimited images online.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">How much can I reduce image size? <span>+</span></button>
+      <div class="faq-answer">
+        <p>On average, image sizes are reduced by 60–90% while keeping high visual quality. This helps speed up your website and saves storage.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">Is it safe to upload my images? <span>+</span></button>
+      <div class="faq-answer">
+        <p>Yes, your images are processed directly in your browser. We do not store or track your files. Once you close the page, everything is gone.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">What’s the difference between JPG, PNG, and WebP? <span>+</span></button>
+      <div class="faq-answer">
+        <p>JPG is best for photos, PNG is best for transparent images or graphics, and WebP gives you the best compression with great quality for the web.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.faq {
+  background: var(--card-bg);
+  padding: 40px 20px;
+  margin-top: 50px;
+  border-radius: 12px;
+}
+.faq-container {
+  max-width: 800px;
+  margin: auto;
+}
+.faq h2 {
+  text-align: center;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.faq p {
+  text-align: center;
+  color: var(--subtext);
+  margin-bottom: 20px;
+}
+.faq-item {
+  margin-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+.faq-question {
+  width: 100%;
+  padding: 15px;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.faq-question:hover {
+  color: var(--accent);
+}
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  padding: 0 15px;
+}
+.faq-answer p {
+  margin: 10px 0;
+  color: var(--subtext);
+}
+.faq-item.active .faq-answer {
+  max-height: 300px;
+  padding: 10px 15px;
+}
+.faq-item.active .faq-question span {
+  transform: rotate(45deg);
+}
+</style>
+
+<script>
+const faqQuestions = document.querySelectorAll(".faq-question");
+
+faqQuestions.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const item = btn.parentElement;
+    item.classList.toggle("active");
+  });
+});
+</script>
+
+<!-- Structured FAQ Schema for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What image formats are supported?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We support JPG, PNG, and WebP formats. You can compress, convert, and download your images instantly without losing quality."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this image compressor really free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, our tool is 100% free with no hidden costs or watermarks. You can compress unlimited images online."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much can I reduce image size?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "On average, image sizes are reduced by 60–90% while keeping high visual quality. This helps speed up your website and saves storage."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to upload my images?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, your images are processed directly in your browser. We do not store or track your files. Once you close the page, everything is gone."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What’s the difference between JPG, PNG, and WebP?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "JPG is best for photos, PNG is best for transparent images or graphics, and WebP gives you the best compression with great quality for the web."
+      }
+    }
+  ]
+}
+</script>
+
+<footer>
+  <p>© 2025 PixelShrink Studio | Free Image Compressor & Converter</p>
+</footer>
+
+<script>
+const uploadArea = document.getElementById('upload-area');
+const fileInput = document.getElementById('file-input');
+const results = document.getElementById('results');
+const darkToggle = document.getElementById('darkToggle');
+const resetBtn = document.getElementById('resetBtn');
+const progressBar = document.getElementById('progressBar');
+const progressFill = document.getElementById('progressFill');
+const downloadAllBtn = document.getElementById('downloadAll');
+
+let uploadedFiles = [];
+let compressedData = []; // store compressed blobs
+
+// Dark Mode
+darkToggle.addEventListener("click", () => document.body.classList.toggle("dark"));
+
+// Reset
+resetBtn.addEventListener("click", () => {
+  results.innerHTML = "";
+  fileInput.value = "";
+  uploadedFiles = [];
+  compressedData = [];
+  downloadAllBtn.style.display = "none";
+});
+
+// Drag-drop
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+function handleFiles(files) {
+  uploadedFiles = [...files].filter(f => f.type.startsWith("image/"));
+  compressedData = [];
+  renderAll();
+}
+
+function renderAll() {
+  results.innerHTML = "";
+  if (!uploadedFiles.length) return;
+
+  let processed = 0;
+  progressBar.style.display = "block";
+  progressFill.style.width = "0%";
+
+  uploadedFiles.forEach((file, idx) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.src = e.target.result;
+      img.onload = () => {
+        createImageCard(file, img, e.target.result, idx);
+        processed++;
+        progressFill.style.width = ((processed / uploadedFiles.length) * 100) + "%";
+        if (processed === uploadedFiles.length) {
+          setTimeout(() => progressBar.style.display = "none", 500);
+          if (uploadedFiles.length > 1) downloadAllBtn.style.display = "block";
+        }
+      };
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function createImageCard(file, img, originalUrl, idx) {
+  const card = document.createElement("div");
+  card.classList.add("image-card");
+  card.innerHTML = `
+    <h3>${file.name}</h3>
+    <label>Quality:
+      <select class="qualitySelect">
+        <option value="0.9">High (90%)</option>
+        <option value="0.75" selected>Medium (75%)</option>
+        <option value="0.5">Low (50%)</option>
+      </select>
+    </label>
+    <label>Format:
+      <select class="formatSelect">
+        <option value="image/jpeg">JPG</option>
+        <option value="image/png">PNG</option>
+        <option value="image/webp">WebP</option>
+      </select>
+    </label>
+    <div class="comparison-row" id="comp-${idx}"></div>
+  `;
+  results.appendChild(card);
+
+  const qualitySelect = card.querySelector(".qualitySelect");
+  const formatSelect = card.querySelector(".formatSelect");
+
+  const render = () => compressAndDisplay(file, img, originalUrl, qualitySelect.value, formatSelect.value, idx);
+  render();
+  qualitySelect.addEventListener("change", render);
+  formatSelect.addEventListener("change", render);
+}
+
+function compressAndDisplay(file, img, originalUrl, quality, format, idx) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const maxW = 800;
+  const scale = Math.min(maxW / img.width, 1);
+  canvas.width = img.width * scale;
+  canvas.height = img.height * scale;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const originalKB = (file.size/1024).toFixed(2);
+    const compressedKB = (blob.size/1024).toFixed(2);
+
+    compressedData[idx] = { name: file.name, blob, format };
+
+    document.getElementById(`comp-${idx}`).innerHTML = `
+      <div class="image-preview">
+        <p><strong>Original</strong></p>
+        <img src="${originalUrl}" alt="original">
+        <p>${originalKB} KB</p>
+      </div>
+      <div class="image-preview">
+        <p><strong>Compressed</strong></p>
+        <img src="${url}" alt="compressed">
+        <p>${compressedKB} KB</p>
+        <a href="${url}" download="compressed-${file.name.split('.')[0]}.${format.includes('png') ? 'png' : format.includes('webp') ? 'webp' : 'jpg'}" class="download-btn">Download</a>
+      </div>
+    `;
+  }, format, parseFloat(quality));
+}
+
+// Download All as ZIP
+downloadAllBtn.addEventListener("click", () => {
+  if (!compressedData.length) return;
+  const zip = new JSZip();
+  compressedData.forEach(data => {
+    if (data) zip.file(`compressed-${data.name.split('.')[0]}.${data.format.includes('png') ? 'png' : data.format.includes('webp') ? 'webp' : 'jpg'}`, data.blob);
+  });
+  zip.generateAsync({type:"blob"}).then(content => saveAs(content, "compressed-images.zip"));
+});
+</script>
+
+</body>
+</html>
