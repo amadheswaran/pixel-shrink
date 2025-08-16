@@ -14,9 +14,6 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -724,6 +721,7 @@ downloadAllBtn.addEventListener("click", () => {
   zip.generateAsync({type:"blob"}).then(content => saveAs(content, "compressed-images.zip"));
 });
 </script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
 </body>
 </html>
